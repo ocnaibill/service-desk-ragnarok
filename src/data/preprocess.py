@@ -12,10 +12,10 @@ try:
 except ImportError:
     spacy = None  
 
-BASE_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR = Path(__file__).resolve().parents[2]
 CAMINHO_ENTRADA = BASE_DIR / "data" / "raw" / "raw.txt"
 CAMINHO_SAIDA = (
-    BASE_DIR / "dados_processados" / "chamados_higienizados_morfologico.csv"
+    BASE_DIR / "data" / "dados_processados" / "chamados_higienizados.csv"
 )
 
 def carregar_modelo_spacy() -> "spacy.Language | None":
