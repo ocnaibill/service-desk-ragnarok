@@ -1,40 +1,38 @@
 import pandas as pd
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-import os
+import spacy
 from pathlib import Path
 
-# Baixa os pacotes do NLTK silenciosamente
-nltk.download('punkt', quiet=True)
-nltk.download('wordnet', quiet=True)
-nltk.download('omw-1.4', quiet=True)
-nltk.download('punkt_tab', quiet=True)
-
-# Inicializa o lematizador
-lemmatizer = WordNetLemmatizer()
+try:
+    nlp = spacy.load("pt_core_news_sm")
+except OSError:
+    print("Erro: O modelo do spaCy não foi encontrado.")
+    exit()
 
 def preprocess_pipeline(cleaned_text: str) -> list:
     """
-    Parâmetros: String vinda da função anterior.
-    Retorno: Lista de tokens lematizados.
+    Lematização Seletiva: Lematiza verbos para o infinitivo, 
+    mas mantém substantivos no plural para preservar termos como "Banco de Dados".
     """
     if not isinstance(cleaned_text, str):
         return []
     
-    tokens = word_tokenize(cleaned_text, language='portuguese')
-    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    doc = nlp(cleaned_text)
+    lemmatized_tokens = []
     
+    for token in doc:
+        # Regra de Ouro: Se for verbo, lematiza (ex: relata -> relatar)
+        if token.pos_ == "VERB":
+            lemmatized_tokens.append(token.lemma_.lower())
+        else:
+            # Se não for verbo, mantém a palavra original! (ex: dados -> dados)
+            lemmatized_tokens.append(token.text.lower())
+            
     return lemmatized_tokens
 
 def main():
     base_dir = Path(__file__).resolve().parent.parent.parent
     input_path = base_dir / "data" / "dados_processados" / "chamados_higienizados.csv"
-    output_dir = base_dir / "data" / "arquivos_lematizados"
-    
-    # Definindo os dois caminhos de saída
-    output_path_1 = output_dir / "processed.csv"
-    output_path_2 = output_dir / "dados_tratados.csv"
+    output_path = base_dir / "data" / "arquivos_lematizados" / "dados_tratados.csv"
 
     print("Lendo os dados higienizados do Cotonete...")
     try:
@@ -43,34 +41,35 @@ def main():
         print(f"Erro: Arquivo não encontrado em {input_path}.")
         return
 
-    # CORREÇÃO: Pegando exatamente as colunas com os nomes que o Cotonete usou
     col_id = 'id'
-    col_text = 'texto_final_higienizado' # Aqui está o texto limpo completo!
-    col_target = 'categoria' # Aqui está a categoria real (ex: Rede, Acesso, etc)
+    col_text = 'texto_final_higienizado'
+    col_target = 'categoria'
+    col_priority = 'prioridade'
 
-    print("Aplicando o pipeline de lematização no texto completo...")
+    print("Aplicando Lematização Seletiva (só verbos)...")
     
-    # Aplica a lematização no texto correto
     df['tokens'] = df[col_text].apply(preprocess_pipeline)
     df['text_final'] = df['tokens'].apply(lambda x: " ".join(x))
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # Hack rápido de NLP para juntar as preposições que o spaCy separa agressivamente
+    # (Transforma "a o banco" de volta para "ao banco")
+    replaces = {
+        r'\ba o\b': 'ao', r'\ba os\b': 'aos',
+        r'\bde o\b': 'do', r'\bde os\b': 'dos',
+        r'\bem o\b': 'no', r'\bem os\b': 'nos',
+        r'\bpor o\b': 'pelo', r'\bpor os\b': 'pelos'
+    }
+    for old, new in replaces.items():
+        df['text_final'] = df['text_final'].str.replace(old, new, regex=True)
 
-    # Prepara o DataFrame final apenas com o que a tarefa exige
-    df_final = df[[col_id, 'text_final', col_target]].copy()
-    
-    # Renomeia as colunas para o padrão exigido na Ação Adicional
-    df_final.columns = ['id', 'text_final', 'target_category']
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Salva o resultado
-    print("Salvando os arquivos finais corrigidos...")
-    df_final.to_csv(output_path_1, index=False)
-    print(f"- Salvo com sucesso: {output_path_1}")
-    
-    df_final.to_csv(output_path_2, index=False)
-    print(f"- Salvo com sucesso: {output_path_2}")
-    
-    print("Sucesso total! A base está pronta para a Parte 2.")
+    df_final = df[[col_id, 'text_final', col_target, col_priority]].copy()
+    df_final.rename(columns={col_target: 'target_category'}, inplace=True)
+
+    print("Salvando o arquivo final de altíssima qualidade...")
+    df_final.to_csv(output_path, index=False)
+    print(f"Sucesso! Arquivo salvo em: {output_path}")
 
 if __name__ == "__main__":
     main()
