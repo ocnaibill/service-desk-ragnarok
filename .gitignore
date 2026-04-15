@@ -1,4 +1,2 @@
-data/raw/
-data/processed/
 *.pkl
 *.joblib
