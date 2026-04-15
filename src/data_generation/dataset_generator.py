@@ -8,7 +8,7 @@ from pathlib import Path
 
 MODELO = "phi3:3.8b-mini-4k-instruct-q4_K_M"
 TOTAL_CHAMADOS = 10000
-ARQUIVO_RAW = "raw.txt"
+ARQUIVO_RAW = "data/raw/raw.txt"
 
 CATEGORIAS={
     "Acesso": 3000,
