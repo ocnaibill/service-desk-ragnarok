@@ -1,0 +1,16 @@
+Modelo: RidgeClassifier
+Acurácia: 0.8940
+
+Relatório de Classificação:
+                precision    recall  f1-score   support
+
+        Acesso       0.94      0.97      0.96       600
+Banco de Dados       0.95      0.91      0.93       100
+   Comunicação       0.89      0.75      0.82       300
+      Hardware       0.93      0.95      0.94       500
+Infraestrutura       0.82      0.76      0.79       200
+          Rede       0.78      0.86      0.82       300
+
+      accuracy                           0.89      2000
+     macro avg       0.88      0.87      0.87      2000
+  weighted avg       0.89      0.89      0.89      2000

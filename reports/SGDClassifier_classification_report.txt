@@ -1,0 +1,16 @@
+Modelo: SGDClassifier
+Acurácia: 0.9035
+
+Relatório de Classificação:
+                precision    recall  f1-score   support
+
+        Acesso       0.94      0.98      0.96       600
+Banco de Dados       0.97      0.93      0.95       100
+   Comunicação       0.91      0.77      0.83       300
+      Hardware       0.93      0.96      0.94       500
+Infraestrutura       0.84      0.81      0.82       200
+          Rede       0.80      0.85      0.82       300
+
+      accuracy                           0.90      2000
+     macro avg       0.90      0.88      0.89      2000
+  weighted avg       0.90      0.90      0.90      2000
